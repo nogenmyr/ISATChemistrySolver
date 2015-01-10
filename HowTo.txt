@@ -17,7 +17,7 @@ make
 cp *.a ../ISAT_dependencies/lib
 cd ../ISAT
 make
-cp *.so $FOAM_USER_LIBBIN
+cp *.so $FOAM_USER_LIBBIN  (the so-files may also be symbolically linked, 'ln -s' )
 
 For a case with reactingFoam use this in constant/chemistryProperties:
 
@@ -79,4 +79,15 @@ libs
     "libisat_rnu.so"
     "libsell.so"
 );
+
+lapack may be optional, depending on how you compiled ISAT-CK7. In case it is needed, 
+put a link, 'ln -s', or a copy in $FOAM_USER_LIBBIN. 
+
+Note on FORTRAN compiler: I used gfortan for all FORTRAN code. Some tweaking with
+ISAT-CK7's Makefile was needed. Name mangling may be different for other compiler,
+which means that the ISAT-CK7's subroutine "ciconv" can be mangled into something
+else than "ciconv_", as was the case with gfortran. If that is the case, change 
+the names of the subroutines in both ISAT.H and ISAT.C accordingly.
+
+
 
