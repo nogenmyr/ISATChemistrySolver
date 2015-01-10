@@ -23,7 +23,7 @@ chemistryType
 
 chemistry           on;
 
-initialChemicalTimeStep 1e-07;
+initialChemicalTimeStep 1e+15;
 
 EulerImplicitCoeffs
 {

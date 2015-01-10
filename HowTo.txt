@@ -19,13 +19,16 @@ cd ../ISAT
 make
 cp *.so $FOAM_USER_LIBBIN
 
-For a case with reactingFoam use this in 
+For a case with reactingFoam use this in constant/chemistryProperties:
 
 chemistryType
 {
     chemistrySolver   ISAT;
     chemistryThermo   psi;
 }
+
+initialChemicalTimeStep 1e+15; //set high to let ISAT do the full time integration
+
 
 You need to produce the file chem.bin and put it in the case directory
 In your case dir:
