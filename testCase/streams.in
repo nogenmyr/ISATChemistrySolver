@@ -1,0 +1,19 @@
+! specify MODECI: the mode of thermochemistry to be used in ISAT
+!        = 1 or CONST_PROPERTY     - inert, constant-density flow
+!        = 2 or MIXTURE_FRACTION   - mixture fraction formulation
+!        = 3 or PROGRESS_VARIABLE  - reaction progress variable formulation
+!        = 4                       - not supported yet
+!        = 5                       - not supported yet
+!        = 6 or DIRECT_INTEGRATION - CHEMKIN/direct integration
+!        = 7 or ISAT_DI            - CHEMKIN/ISAT
+!        = 8 or RCCE               - CHEMKIN/ISAT/RCCE
+!        = 9 or ICE_PIC            - CHEMKIN/ISAT/ICE_PIC
+!
+MODECI         ISAT_DI
+
+STREAM BEGIN DUMMY [MOLE]
+    P          1.0                  ! pressure (atm) 1 atm = 1.01325E+05 Pa
+    T          300                  ! temperature (K)
+    N2         1
+STREAM END DUMMY
+
