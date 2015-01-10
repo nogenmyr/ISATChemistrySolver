@@ -3,10 +3,10 @@
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
     \\  /    A nd           | Copyright (C) 2011-2013 OpenFOAM Foundation
-     \\/     M anipulation  |
+     \\/     M anipulation  | Copyright (C) 2014 Karl-Johan Nogenmyr
 -------------------------------------------------------------------------------
 License
-    This file is part of OpenFOAM.
+    Copyright (C) 2014 Karl-Johan Nogenmyr
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
