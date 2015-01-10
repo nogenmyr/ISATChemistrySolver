@@ -23,9 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-//#ifndef makeChemistrySolverTypes_H
-//#define makeChemistrySolverTypes_H
-
 #include "chemistrySolver.H"
 #include "chemistryModel.H"
 
