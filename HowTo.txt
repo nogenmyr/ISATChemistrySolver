@@ -105,3 +105,9 @@ The nml files are optional, and are used to control ISATCK7 (see ISATCK7 for hel
 The files are conveniently created as symbolic links, i.e. in processor#, type
 ln -s ../chem.bin chem.bin
 
+
+Experienced problem: When using an inert specie in the simulation, like N2, which is not
+solved using transport equation, I had some problems with N2 getting a bit off from expected
+values. Look on reactingLMFoam at github.com/nogenmyr to see how inert specie may be turned off
+(i.e. start solving transport equation also for N2). Without inert specie, total sum of Yi may
+deviate from unity. The deviation on a test case was some 0.3%.
