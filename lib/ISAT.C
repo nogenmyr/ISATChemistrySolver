@@ -35,14 +35,49 @@ Foam::ISAT<ChemistryModel>::ISAT
 )
 :
     chemistrySolver<ChemistryModel>(mesh),
+    coeffsDict_(this->subDict("ISATCoeffs")),
     W_(this->nSpecie())
 {
 //      ncv     - number of composition variables (integer)
 //      nfullv  - number of items in the full representation (integer)
 //      nstrms  - number of streams (integer)
     int ncv, nfull, nstrms;
-    ciinit_( &ncv, &nfull, &nstrms );
+
     label nSpecie = this->nSpecie();
+
+    for (register int i=0; i<nSpecie; i++)
+    {
+        W_[i] = this->specieThermo()[i].W();
+    }
+
+    if (coeffsDict_.lookup("saveISATtree"))
+    {
+        this->writeOpt() = IOobject::AUTO_WRITE;
+    }
+
+
+    { // following is needed if old isat table should be read in
+      // read in happens at first call to cirxn. has to be in the 
+      // right working directory
+        if (Pstream::parRun()) //parallel case
+        {
+            chDir(this->time().path());
+        }
+  
+        ciinit_( &ncv, &nfull, &nstrms );
+
+        double deltaT = this->time().deltaT().value();
+        double Z0[ncv];
+        double Z1[ncv];
+        int strm=1;
+        double dpt[3];
+        cistrm_( &strm, &ncv, Z0, dpt );
+        cirxn_(&deltaT, &ncv, Z0, Z1, dpt);
+        if (Pstream::parRun()) //parallel case
+        {
+            chDir("..");
+        }
+    }
     if (ncv != nSpecie+1)
     {
         FatalErrorIn("ChemistryModel::ISAT::ISAT(const mesh&)")
@@ -50,11 +85,6 @@ Foam::ISAT<ChemistryModel>::ISAT
             << "the number of species in ISAT library:" << nl
             << "Check chem.bin file for errors" << nl
             << abort(FatalError);
-    }
-
-    for (register int i=0; i<nSpecie; i++)
-    {
-        W_[i] = this->specieThermo()[i].W();
     }
 }
 
@@ -123,5 +153,24 @@ void Foam::ISAT<ChemistryModel>::solve
     subDeltaT = deltaT;
 }
 
-
+template<class ChemistryModel>
+bool Foam::ISAT<ChemistryModel>::writeObject
+(
+    IOstream::streamFormat fmt,
+    IOstream::versionNumber ver,
+    IOstream::compressionType cmp 
+) const
+{
+    if (Pstream::parRun()) //parallel case
+    {
+        chDir(this->time().path());
+    }
+    int nRec = 0;
+    cisave_(&nRec);
+    if (Pstream::parRun()) //parallel case
+    {
+        chDir("..");
+    }
+    return true;
+}
 // ************************************************************************* //

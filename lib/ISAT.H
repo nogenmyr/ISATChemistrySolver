@@ -36,6 +36,8 @@ SourceFiles
 #define ISAT_H
 
 #include "chemistrySolver.H"
+#include "IOobject.H"
+
 extern "C" void ciinit_(int*, int*, int*);
 extern "C" void cirxn_(double*, int*, double*, double*, double*);
 extern "C" void ciconv_
@@ -43,6 +45,8 @@ extern "C" void ciconv_
     int*, int*, int*, int*, int*, double*, double*, double*, 
     double*, int*, int*, int*, int*, double*, double*, double*, double*
 );
+extern "C" void cisave_(int*);
+extern "C" void cistrm_(int*, int*, double*, double*);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -59,8 +63,12 @@ class ISAT
     public chemistrySolver<ChemistryModel>
 {
     // Private data
-        
+        //- Coefficients dictionary
+        dictionary coeffsDict_;
+
+        //- Mole weights of species
         scalarField W_;
+
 
 public:
 
@@ -89,6 +97,16 @@ public:
             scalar& deltaT,
             scalar& subDeltaT
         ) const;
+
+
+        //- Implements writeObject here to save ISAT table data
+        // This is called if writeOpt==IOobject::AUTO_WRITE
+        bool writeObject
+        (
+            IOstream::streamFormat fmt,
+		    IOstream::versionNumber ver,
+		    IOstream::compressionType cmp 
+    	) const;
 };
 
 
