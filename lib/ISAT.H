@@ -38,6 +38,7 @@ SourceFiles
 #include "chemistrySolver.H"
 #include "IOobject.H"
 
+extern "C" void ciparam_(int*, double*, int*, double*);
 extern "C" void ciinit_(int*, int*, int*);
 extern "C" void cirxn_(double*, int*, double*, double*, double*);
 extern "C" void ciconv_
