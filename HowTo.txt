@@ -33,12 +33,13 @@ For a case with reactingFoam use this in constant/chemistryProperties:
     ISATCoeffs
     {
         saveISATtree on; // or off
+        constantPressure off; // or on (for low Mach solver, ISAT operates more effectively)
+        externalCKWYP off; // if you have put your own ckwyp_ext file in ISAT-CK7 source
     }
 
 If ISAT tree is saved, isat_1.tab is created in each processor dir, or case dir
-for serial runs. For use at restart type "ichin=1" in isat_1.nml file. This however
-requires a modification to file "isatab_ser/isat_init.f90": 
-    In "namelist / isat_nml /" add variable "ichin"
+for serial runs. At restart, it is checked if the .tab file exists. If it does
+it is loaded by ISAT-CK7. 
 
 You need to produce the file chem.bin and put it in the case directory
 In your case dir:
@@ -64,15 +65,7 @@ The file is needed by the ISAT code, but it is also used by my code to make an
 initial call to ISAT, so assure that the first stream (the only stream needed)
 is realistic, like pure N2 at STP.
 
-If you fix time step (adjustTimeStep no;) and have a constant pressure (ie low Mach 
-solver) you can have con_dt=1 and con_pr=1 in file called "ci.nml" in case folder: 
-(make sure your solvers thermodynamic pressure matches that of the stream in "stream.in")
-
-&cinml
-con_pr=1
-con_dt=1
-/
-
+If you fix time step (adjustTimeStep no;) ISAT can be operated more effectively
 
 In controlDict you need:
 
