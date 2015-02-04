@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "ISAT.H"
+#include "specie.H"
 #include "chemistryModel.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -72,14 +73,34 @@ Foam::ISAT<ChemistryModel>::ISAT
         if(coeffsDict_.lookupOrDefault("constantPressure", false)) ci_info[0]=1;
         if(!Switch(this->time().controlDict().lookup("adjustTimeStep"))) ci_info[1]=1;
         if(coeffsDict_.lookupOrDefault("externalCKWYP", false)) ci_info[19]=1;  // if you have put your own ckwyp_ext file in ISAT-CK7 source
-        ifstream f("isat_1.tab");
-        if(f.good()) info[9] = 1; // load an existing table, since it exists. No check if it is valid or not
-        f.close();
-
+        {
+            ifstream f("isat_1.tab");
+            if(f.good()) info[9] = 1; // load an existing table, since it exists. No check if it is valid or not
+            f.close();
+        }
+        {
+            ifstream f("streams.in");
+            if(!f.good()) // create a streams file here!
+            {
+                f.close();
+                const specie& spec = this->specieThermo()[0];
+                const volScalarField& p = mesh.lookupObject<volScalarField>("p");
+                std::ofstream streamsFile("streams.in");
+                streamsFile << "MODECI         ISAT_DI" << std::endl;
+                streamsFile << "STREAM BEGIN DUMMY [MOLE]" << std::endl;
+                streamsFile << "    P          " << p[0]/1.01325E+05 << std::endl;
+                streamsFile << "    T          300" << std::endl;
+                streamsFile << "    " << spec.name() << "         1" << std::endl;
+                streamsFile << "STREAM END DUMMY" << std::endl;
+                streamsFile.close();
+            }
+            f.close();
+        }
+        
         ciparam_( ci_info, ci_rinfo, info, rinfo );
         
         ciinit_( &ncv, &nfull, &nstrms );
-        Info << "ISAT-CK7 initialized!" << endl; 
+        Info << "ISAT-CK7 initialized" << endl; 
 
         double deltaT = this->time().deltaT().value();
         double Z0[ncv];
