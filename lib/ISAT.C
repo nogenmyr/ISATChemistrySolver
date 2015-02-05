@@ -70,9 +70,19 @@ Foam::ISAT<ChemistryModel>::ISAT
         int info[100] = {};
         double rinfo[50] = {};
         
-        if(coeffsDict_.lookupOrDefault("constantPressure", false)) ci_info[0]=1;
-        if(!Switch(this->time().controlDict().lookup("adjustTimeStep"))) ci_info[1]=1;
-        if(coeffsDict_.lookupOrDefault("externalCKWYP", false)) ci_info[19]=1;  // if you have put your own ckwyp_ext file in ISAT-CK7 source
+        if(Switch(coeffsDict_.lookupOrDefault("constantPressure", false)))
+        {
+            ci_info[0]=1;
+        }
+        if(!Switch(this->time().controlDict().lookup("adjustTimeStep")))
+        {
+            ci_info[1]=1;
+        }
+        if(Switch(coeffsDict_.lookupOrDefault("externalCKWYP", false)))
+        {
+            Info << "Using external CKWYP" << endl;
+            ci_info[19]=1;  // if you have put your own ckwyp_ext file in ISAT-CK7 source
+        }
         {
             ifstream f("isat_1.tab");
             if(f.good()) info[9] = 1; // load an existing table, since it exists. No check if it is valid or not
@@ -181,7 +191,14 @@ void Foam::ISAT<ChemistryModel>::solve
     int ke=2;
     int ks=3;
 
-    ciconv_(&ncv, &jd, &jp, &je, &js, &densitySI, &p, &T, X0, &kd, &kp, &ke, &ks, &densityCGS, &pCGS, &hs, Z0);
+    ciconv_
+    (
+        &ncv, 
+        &jd, &jp, &je, &js, &densitySI, 
+        &p, &T, X0, 
+        &kd, &kp, &ke, &ks, &densityCGS, 
+        &pCGS, &hs, Z0
+    );
 
     Z0[nSpecie] = hs;
     double dpt[3] = {densityCGS, pCGS, -1};
