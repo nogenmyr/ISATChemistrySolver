@@ -61,7 +61,7 @@ Foam::ISAT<ChemistryModel>::ISAT
         );
     }
 
-    if (coeffsDict_.lookup("saveISATtree"))
+    if (Switch(coeffsDict_.lookup("saveISATtree")))
     {
         this->writeOpt() = IOobject::AUTO_WRITE;
     }
