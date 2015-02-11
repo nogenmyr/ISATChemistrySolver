@@ -26,6 +26,9 @@ Class
 
 Description
     An solver for chemistry using ISAT-CK7
+    General note: ISAT-CK7 uses CGS units, so a conversion is done
+    before calling. If OpenFOAM is operated using other than SI units,
+    this conversion will fail.
 
 SourceFiles
     ISAT.C
@@ -41,11 +44,6 @@ SourceFiles
 extern "C" void ciparam_(int*, double*, int*, double*);
 extern "C" void ciinit_(int*, int*, int*);
 extern "C" void cirxn_(double*, int*, double*, double*, double*);
-extern "C" void ciconv_
-(
-    int*, int*, int*, int*, int*, double*, double*, double*, 
-    double*, int*, int*, int*, int*, double*, double*, double*, double*
-);
 extern "C" void cisave_(int*);
 extern "C" void cistrm_(int*, int*, double*, double*);
 
@@ -69,6 +67,12 @@ class ISAT
 
         //- Mole weights of species
         scalarField W_;
+        
+        //- Reference enthalpies for species
+        scalarField href_;
+        
+        //- Number of variables for ISAT, nSpecies+1
+        mutable int ncv_;
 
 
 public:

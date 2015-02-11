@@ -37,18 +37,28 @@ Foam::ISAT<ChemistryModel>::ISAT
 :
     chemistrySolver<ChemistryModel>(mesh),
     coeffsDict_(this->subDict("ISATCoeffs")),
-    W_(this->nSpecie())
+    W_(this->nSpecie()),
+    href_(this->nSpecie()),
+    ncv_(-1)
 {
-//      ncv     - number of composition variables (integer)
 //      nfullv  - number of items in the full representation (integer)
 //      nstrms  - number of streams (integer)
-    int ncv, nfull, nstrms;
+    int nfull, nstrms;
 
     label nSpecie = this->nSpecie();
 
     for (register int i=0; i<nSpecie; i++)
     {
         W_[i] = this->specieThermo()[i].W();
+        href_[i] = 
+        (
+            this->specieThermo()[i].hc()
+          - this->specieThermo()[i].cp
+            (
+                specie::Pstd,
+                specie::Tstd
+            )*specie::Tstd
+        );
     }
 
     if (coeffsDict_.lookup("saveISATtree"))
@@ -79,9 +89,9 @@ Foam::ISAT<ChemistryModel>::ISAT
             ci_info[1]=1;
         }
         if(Switch(coeffsDict_.lookupOrDefault("externalCKWYP", false)))
-        {
+        { // if you have put your own ckwyp_ext file in ISAT-CK7 source
             Info << "Using external CKWYP" << endl;
-            ci_info[19]=1;  // if you have put your own ckwyp_ext file in ISAT-CK7 source
+            ci_info[19]=1; 
         }
         {
             ifstream f("isat_1.tab");
@@ -98,9 +108,9 @@ Foam::ISAT<ChemistryModel>::ISAT
                 std::ofstream streamsFile("streams.in");
                 streamsFile << "MODECI         ISAT_DI" << std::endl;
                 streamsFile << "STREAM BEGIN DUMMY [MOLE]" << std::endl;
-                streamsFile << "    P          " << p[0]/1.01325E+05 << std::endl;
-                streamsFile << "    T          300" << std::endl;
-                streamsFile << "    " << spec.name() << "         1" << std::endl;
+                streamsFile << "    P       " << p[0]/1.01325E+05 << std::endl;
+                streamsFile << "    T       300" << std::endl;
+                streamsFile << "    " << spec.name() << "      1" << std::endl;
                 streamsFile << "STREAM END DUMMY" << std::endl;
                 streamsFile.close();
             }
@@ -109,25 +119,25 @@ Foam::ISAT<ChemistryModel>::ISAT
         
         ciparam_( ci_info, ci_rinfo, info, rinfo );
         
-        ciinit_( &ncv, &nfull, &nstrms );
+        ciinit_( &ncv_, &nfull, &nstrms );
         Info << "ISAT-CK7 initialized" << endl; 
 
         double deltaT = this->time().deltaT().value();
-        double Z0[ncv];
-        double Z1[ncv];
+        double Z0[ncv_];
+        double Z1[ncv_];
         int strm=1;
         double dpt[3];
 
-        cistrm_( &strm, &ncv, Z0, dpt );
+        cistrm_( &strm, &ncv_, Z0, dpt );
 
-        cirxn_(&deltaT, &ncv, Z0, Z1, dpt);
+        cirxn_(&deltaT, &ncv_, Z0, Z1, dpt); // call once to complete init
 
         if (Pstream::parRun()) //parallel case
         {
             chDir("..");
         }
     }
-    if (ncv != nSpecie+1)
+    if (ncv_ != nSpecie+1)
     {
         FatalErrorIn("ChemistryModel::ISAT::ISAT(const mesh&)")
             << "The number of species in OpenFOAM does not match "
@@ -157,53 +167,39 @@ void Foam::ISAT<ChemistryModel>::solve
     scalar& subDeltaT
 ) const
 { // W: kg/kmol
-//
-// Note: Preferrably, we should only call cirxn_ here, but we need
-// sensible enthalpy, hs, when calling cirxn_. To get hs, we call ciconv_
-// This gives some overhead, which we would like to get rid of... do not know how yet
+
     int nSpecie = this->nSpecie();
-    int ncv = nSpecie+1;
-    double Z0[ncv];  // initial specific mole number [mole/g] array + hs
-    double Z1[ncv];  // specific mole number after deltaT array + hs
-    double X0[nSpecie]; // initial molefrac
+    double Z0[ncv_];  // initial specific mole number [mole/g] array + hs
+    double Z1[ncv_];  // specific mole number after deltaT array + hs
 
-    scalar moleTot = 0.;
-    double densitySI = 0.;
-    for (register int i=0; i<nSpecie; i++)
-    {
-        densitySI += c[i]*W_[i];
-        moleTot += c[i];
-        X0[i] = c[i];
-    }
-    for (register int i=0; i<nSpecie; i++)
-    {
-        X0[i] /= moleTot;
-    }
-    double densityCGS=1.;
-    double pCGS;
-    double hs=-1.;
-    int jd=2;
-    int jp=3;
-    int je=1;
-    int js=1;
-    int kd=2;
-    int kp=2;
-    int ke=2;
-    int ks=3;
+    scalar rcTot = 1./sum(c);    
 
-    ciconv_
+    // Calculate the sensible enthalpy
+    typename ChemistryModel::thermoType mixture
     (
-        &ncv, 
-        &jd, &jp, &je, &js, &densitySI, 
-        &p, &T, X0, 
-        &kd, &kp, &ke, &ks, &densityCGS, 
-        &pCGS, &hs, Z0
+        (c[0]*rcTot)*this->specieThermo_[0]
     );
 
-    Z0[nSpecie] = hs;
-    double dpt[3] = {densityCGS, pCGS, -1};
+    double densitySI = c[0]*W_[0];
 
-    cirxn_(&deltaT, &ncv, Z0, Z1, dpt);
+    for (register int i=1; i<nSpecie; i++)
+    {
+        densitySI += c[i]*W_[i];
+        mixture += (c[i]*rcTot)*this->specieThermo_[i];
+    }
+
+    scalar hc = 0.;
+    for (register int i=0; i<nSpecie; i++)
+    {
+        Z0[i] = c[i]/densitySI; // kmol/m3 to mole/g
+        hc += Z0[i]*href_[i];
+    }
+
+    Z0[nSpecie] = (mixture.Ha(p, T)-hc)*1e4; // hs: J/kg to ergs/g
+
+    double dpt[3] = {-1, p*10., -1}; // only p needed as input
+
+    cirxn_(&deltaT, &ncv_, Z0, Z1, dpt);
 
     for (register int i=0; i<nSpecie; i++)
     {
