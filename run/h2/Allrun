@@ -1,0 +1,21 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Set application name
+application=`getApplication`
+
+cd chemkin
+ck2cti --input=chem.inp --thermo=therm.dat
+../../cti2xml.py
+mv chem.xml ../mech.xml
+cd ..
+
+runApplication $application
+
+(cd validation && ./Allrun)
+
+# ----------------------------------------------------------------- end-of-file
+

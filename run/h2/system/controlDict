@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     chemFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.001;
+
+deltaT          1e-05;
+
+maxDeltaT       1;
+
+adjustTimeStep  off;
+
+writeControl    adjustableRunTime;
+
+writeInterval   5e-04;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  13;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+suppressSolverInfo yes;
+
+libs
+(
+    "libISATChemistrySolver.so"
+    "libadifor.so"
+    "libceq.so"
+    "libct.so"
+    "libell.so"
+    "libisat7_ser.so"
+    "libisatab_ser.so"
+    "libisatck_ext.so"
+    "libisatck.so"
+    "libice_pic.so"
+    "libisat_rnu.so"
+    "libck_ext.so"
+    "liblapack.so.3"
+    "libmyCombustionModels.so"
+    "libsell.so"
+//    "libcantera_shared.so"
+);
+
+
+// ************************************************************************* //

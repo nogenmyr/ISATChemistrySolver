@@ -1,0 +1,3 @@
+Essentially chemFoam tutorials for h2 and gri. I have not tried the other mechanisms.
+ISAT gives a somewhat too early ignition for gri. If ISAT_DI is repleaced in 
+streams.in with DIRECT_INTEGRATION, ignition timing is the same as ChemkinII 
