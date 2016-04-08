@@ -117,9 +117,20 @@ Foam::ISAT<ChemistryModel>::ISAT
             f.close();
         }
         
+
+        ci_rinfo[0]=coeffsDict_.lookupOrDefault<scalar>("DDASACabsErr", 0); //0 makes ISAT-CK7 use its default value, see ci_subs.f
+        ci_rinfo[1]=coeffsDict_.lookupOrDefault<scalar>("DDASACrelErr", 0); //0 makes ISAT-CK7 use its default value
+
+        rinfo[0]=coeffsDict_.lookupOrDefault<scalar>("ISATABabsErr", 0); //0 makes ISAT-CK7 use its default value, see isatab.f90
+        rinfo[1]=coeffsDict_.lookupOrDefault<scalar>("ISATABrelErr", 0); //0 makes ISAT-CK7 use its default value
+
+        rinfo[7]=coeffsDict_.lookupOrDefault<scalar>("ISATABsizeMB", 0); //0 makes ISAT-CK7 use its default value (500 MB)
+
         ciparam_( ci_info, ci_rinfo, info, rinfo );
-        
         ciinit_( &ncv_, &nfull, &nstrms );
+//        const int* n(ciinit_( &ncv_, &nfull, &nstrms ));
+//        ThermoPhase* tp(&ThermoCabinet::item(*n));
+
         Info << "ISAT-CK7 initialized" << endl; 
 
         double deltaT = this->time().deltaT().value();

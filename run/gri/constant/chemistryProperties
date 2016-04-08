@@ -28,6 +28,11 @@ ISATCoeffs
     saveISATtree off;
     externalCKWYP off;
     constantPressure off;
+    ISATABabsErr 1e-5;
+    ISATABrelErr 0;
+    DDASACabsErr 1e-8;
+    DDASACrelErr 1e-9;
+    ISATABsizeMB 500;    
 }
 
 initialChemicalTimeStep 1e-7;

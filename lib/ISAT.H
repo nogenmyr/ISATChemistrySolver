@@ -29,6 +29,19 @@ Description
     General note: ISAT-CK7 uses CGS units, so a conversion is done
     before calling. If OpenFOAM is operated using other than SI units,
     this conversion will fail.
+    
+    ISATCoeffs
+    {
+        saveISATtree off; //Each processor saves it's generated table if on
+        externalCKWYP off; //If you want to use a ckwyp.f file for rates
+        constantPressure off; //ISAT can run more efficient if pressure is const
+        ISATABabsErr 1e-5; // Abs error for ISAT-tabulation
+        ISATABrelErr 0; // Rel error for ISAT-tabulation
+        DDASACabsErr 1e-8; // Abs error for chemistry integrator
+        DDASACrelErr 1e-9; // Rel error for chemistry integrator
+        ISATABsizeMB 500; // Size in megabytes for generated ISAT-table
+    }
+    
 
 SourceFiles
     ISAT.C
@@ -43,6 +56,7 @@ SourceFiles
 
 extern "C" void ciparam_(int*, double*, int*, double*);
 extern "C" void ciinit_(int*, int*, int*);
+//extern "C" const int*  ciinit_(int*, int*, int*);
 extern "C" void cirxn_(double*, int*, double*, double*, double*);
 extern "C" void cisave_(int*);
 extern "C" void cistrm_(int*, int*, double*, double*);
